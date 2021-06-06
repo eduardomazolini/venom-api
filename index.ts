@@ -6,7 +6,7 @@ import {routeBuilder} from './express/route';
 const app = express();
 const PORT = config.api.port;
 
-create('meucelular', catchQR, statusFind)
+create(config.sessionName, catchQR, statusFind)
     .then((client) => {
         start(client);
         routeBuilder(client);
