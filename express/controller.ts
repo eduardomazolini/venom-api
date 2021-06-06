@@ -29,12 +29,9 @@ function restoreSession(){
 
 //Mensagens
 function sendText(venom:venom.Whatsapp){
-    return (req:Request, res:Response) => {
-        console.log(req.body)
-        console.log(req)
-        venom.sendText(req.body.to, req.body.text).then(() => {
-            res.status(200).send({"message":"enviado"})
-        })
+    return async (req:Request, res:Response) => {
+        await venom.sendText(req.body.to, req.body.text)
+        res.status(200).send({"message":"enviado"})
     }
 
 }
