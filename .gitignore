@@ -2,3 +2,4 @@ node_modules/
 build/
 tokens/
 config/
+config/default.json
