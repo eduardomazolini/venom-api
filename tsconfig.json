@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+      "target": "es6",
+      "module": "commonjs",
+      "rootDir": "./",
+      "outDir": "./build",
+      "noEmitOnError": true, //true não compila erros do TS mesmo que validos no js
+      "esModuleInterop": true,
+      "resolveJsonModule":true,
+
+      "strict": true
+    }
+  }
