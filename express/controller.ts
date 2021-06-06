@@ -1,4 +1,5 @@
-
+import venom from 'venom-bot'
+import { Request, Response } from 'express'
 
 //Instância
 
@@ -27,7 +28,14 @@ function restoreSession(){
 }
 
 //Mensagens
-function sendText(){
+function sendText(venom:venom.Whatsapp){
+    return (req:Request, res:Response) => {
+        console.log(req.body)
+        console.log(req)
+        venom.sendText(req.body.to, req.body.text).then(() => {
+            res.status(200).send({"message":"enviado"})
+        })
+    }
 
 }
 

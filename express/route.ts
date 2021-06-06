@@ -64,7 +64,7 @@ function routeBuilder(venom:venom.Whatsapp): core.Router {
     venomRoutes.get('/restore-session',restoreSession);
 
     //Mensagens
-    venomRoutes.post('/send-text',sendText);
+    venomRoutes.post('/send-text', sendText(venom));
     venomRoutes.post('/send-contact',sendContact);
     venomRoutes.post('/send-image',sendImage);
     venomRoutes.post('/send-audio',sendAudio);
