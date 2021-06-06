@@ -13,8 +13,9 @@ function catchQR(qrCode: string,
                  attempt: number,
                  urlCode?: string) : void {
     console.log('Number of attempts to read the qrcode: ', attempt);
-    console.log('Terminal qrcode: ', asciiQR);
-    console.log('base64 image string qrcode: ', qrCode);
+    console.log('Terminal qrcode: ');
+    console.log(asciiQR);
+    //console.log('base64 image string qrcode: ', qrCode);
     console.log('urlCode (data-ref): ', urlCode);
 }
 
