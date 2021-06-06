@@ -12,6 +12,7 @@ function catchQR(qrCode: string,
                  asciiQR: string,
                  attempt: number,
                  urlCode?: string) : void {
+    console.log('++++++++++catchQR++++++++++')
     console.log('Number of attempts to read the qrcode: ', attempt);
     console.log('Terminal qrcode: ');
     console.log(asciiQR);
@@ -20,6 +21,7 @@ function catchQR(qrCode: string,
 }
 
 function statusFind(statusGet: string, session: string):void{
+    console.log('++++++++++statusFind++++++++++')
     console.log('Status Session: ', statusGet); //return isLogged || notLogged || browserClose || qrReadSuccess || qrReadFail || autocloseCalled || desconnectedMobile || deleteToken || chatsAvailable || deviceNotConnected || serverWssNotConnected || noOpenBrowser
     //Create session wss return "serverClose" case server for close
     console.log('Session name: ', session);
