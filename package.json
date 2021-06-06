@@ -6,7 +6,11 @@
     "build": "tsc --project ./",
     "start": "nodemon index.ts",
     "dev": "tsc -w"
-},
+  },
+  "nodemonConfig": {
+    "ignore": ["tokens/*"],
+    "delay": 2500
+  },  
   "license": "MIT",
   "dependencies": {
     "express": "^4.17.1",
