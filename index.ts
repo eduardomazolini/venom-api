@@ -1,12 +1,12 @@
 import config from './config/default.json';
 import express from 'express';
-var bodyParser = require('body-parser')
 import { create } from 'venom-bot';
 import {catchQR, statusFind, start} from './venom/route';
 import {routeBuilder} from './express/route';
 const app = express();
 const PORT = config.api.port;
-app.use(bodyParser.json())
+app.use(express.json())
+app.use(express.urlencoded())
 
 create(config.sessionName, catchQR, statusFind)
     .then((client) => {
