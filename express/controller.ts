@@ -2,10 +2,11 @@ import venom from 'venom-bot';
 import { Request, Response } from 'express';
 import config from '../config/default.json';
 import path from 'path';
+import ogs from 'open-graph-scraper';
 
 async function phoneLib(phone: string): Promise<string> {
-    const lib = await import("../phone-library/"+config.phoneStrategy.phoneLibrary)
-    return lib.default(phone)
+    const lib = await import("../phone-library/"+config.phoneStrategy.phoneLibrary);
+    return lib.default(phone);
 }
 
 function base64MimeType(encoded: string) {
@@ -20,6 +21,34 @@ function base64MimeType(encoded: string) {
     }
   
     return result;
+}
+
+async function getLinkData(url:string):Promise<{ linkUrl: string;
+                                                 image?: string;
+                                                 title?: string;
+                                                 linkDescription?: string;
+                                               }> {
+    const options = { url: '' };
+    return ogs(options)
+      .then((data:ogs.SuccessResult | ogs.ErrorResult) => {
+        const { error, result } = data;
+        if (!error && result.success==true) {
+            let image = result.ogImageURL;
+            let linkUrl = result.ogUrl || url;
+            let title = result.ogTitle;
+            let linkDescription = result.ogDescription;
+            return  {
+                image,
+                linkUrl,
+                title,
+                linkDescription
+            }
+        } else {
+            return {
+                "linkUrl":url
+            }
+        }
+      })
 }
 //Instância
 
@@ -50,39 +79,38 @@ function restoreSession(){
 //Mensagens
 function sendText(venom:venom.Whatsapp){
     return async (req:Request, res:Response) => {
-        let content = ""
+        let content = "";
         if (!!req.body.message) {
-            content = req.body.message
+            content = req.body.message;
         } else {
-            res.status(500).send({"message":"not 'to' field"})
-            return
+            res.status(500).send({"message":"not 'to' field"});
+            return;
         }
 
         let to = "";
         if (!!req.body.to) {
-            to = req.body.to
+            to = req.body.to;
         }
         if (!!req.body.phone) {
-            to = await phoneLib(<string> req.body.phone)
+            to = await phoneLib(<string> req.body.phone);
         }
         if (!to) {
-            res.status(500).send({"message":"not 'to' field"})
-            return
+            res.status(500).send({"message":"not 'to' field"});
+            return;
         }
 
         try{
             if (!!req.body.quotedMsg){
-                const quotedMsg = req.body.quotedMsg
-                await venom.reply(to, content, quotedMsg)
+                const quotedMsg = req.body.quotedMsg;
+                await venom.reply(to, content, quotedMsg);
             } else {
-                await venom.sendText(to, content)
+                await venom.sendText(to, content);
             }
-            res.status(200).send({"message":"enviado"})
+            res.status(200).send({"message":"enviado"});
         } catch(error){
-            res.status(500).send({"message":error.message})
+            res.status(500).send({"message":error.message});
         }
     }
-
 }
 
 function sendContact(){
@@ -93,20 +121,20 @@ function sendImage(venom:venom.Whatsapp){
     return async (req:Request, res:Response) => {
         let to = "";
         if (!!req.body.to)
-            to = req.body.to
+            to = req.body.to;
         if (!!req.body.phone)
-            to = await phoneLib(<string> req.body.phone)
+            to = await phoneLib(<string> req.body.phone);
         if (!to) {
-            res.status(500).send({"message":"not 'to' field"})
-            return
+            res.status(500).send({"message":"not 'to' field"});
+            return;
         }
 
         let image = "";
         if (!!req.body.image) {
-            image = req.body.image
+            image = req.body.image;
         } else {
-            res.status(500).send({"message":"not 'image' field"})
-            return
+            res.status(500).send({"message":"not 'image' field"});
+            return;
         }
 
         let caption = req.body.caption;
@@ -123,23 +151,23 @@ function sendImage(venom:venom.Whatsapp){
             mimetype = 'image/'+path.extname(filename).slice(1);
 
         if (!mimetype){
-            res.status(500).send({"message":"image not have mimeType"})
-            return
+            res.status(500).send({"message":"image not have mimeType"});
+            return;
         }
         if (!filename)
-            filename = 'arquivo.'+mimetype.split('/')[1]
+            filename = 'arquivo.'+mimetype.split('/')[1];
 
         if (!base64HasMime){
-            image = "data:"+mimetype+";base64,"+image
+            image = "data:"+mimetype+";base64,"+image;
         }
         try {
             console.log("mimetype :",mimetype);
             console.log("filename :",filename);
             console.log("sendImage :",image.slice(0,30)+'...');
-            await venom.sendImageFromBase64(to, image, filename, caption)
-            res.status(200).send({"message":"enviado"})
+            await venom.sendImageFromBase64(to, image, filename, caption);
+            res.status(200).send({"message":"enviado"});
         } catch(error) {
-            res.status(500).send({"message":error})
+            res.status(500).send({"message":error});
         }
     }
 }
@@ -156,8 +184,41 @@ function sendDocument(){
 
 }
 
-function sendLink(){
+function sendLink(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {
+        let content = "";
+        if (!!req.body.message) {
+            content = req.body.message;
+        } else {
+            res.status(500).send({"message":"not 'to' field"});
+            return
+        }
 
+        let to = "";
+        if (!!req.body.to) {
+            to = req.body.to;
+        }
+        if (!!req.body.phone) {
+            to = await phoneLib(<string> req.body.phone);
+        }
+        if (!to) {
+            res.status(500).send({"message":"not 'to' field"});
+            return
+        }
+
+        let linkUrl=req.body.linkUrl;
+        if (!linkUrl){
+            res.status(500).send({"message":"body not include 'linkUrl' field"});
+            return
+        }
+
+        try {
+            await venom.sendLinkPreview(to, linkUrl, content);
+            res.status(200).send({"message":"enviado"});
+        } catch(error){
+            res.status(500).send({"message":error.message});
+        }
+    }
 }
 
 function readMessage(){
