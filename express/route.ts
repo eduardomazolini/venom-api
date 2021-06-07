@@ -18,6 +18,7 @@ import {
         sendDocument,
         sendLink,
         readMessage,
+        messagesDelete,
         //Status
         sendTextStatus,
         sendImageStatus,
@@ -66,12 +67,13 @@ function routeBuilder(venom:venom.Whatsapp): core.Router {
     //Mensagens
     venomRoutes.post('/send-text', sendText(venom));
     venomRoutes.post('/send-contact',sendContact);
-    venomRoutes.post('/send-image',sendImage);
+    venomRoutes.post('/send-image',sendImage(venom));
     venomRoutes.post('/send-audio',sendAudio);
     venomRoutes.post('/send-video',sendVideo);
     venomRoutes.post('/send-document/:extension',sendDocument);
     venomRoutes.post('/send-link',sendLink);
     venomRoutes.post('/read-message',readMessage);
+    venomRoutes.delete('/messages',messagesDelete);
 
 
     //Status
