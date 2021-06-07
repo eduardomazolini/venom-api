@@ -11,11 +11,12 @@ app.use(express.urlencoded())
 create(config.sessionName, catchQR, statusFind)
     .then((client) => {
         start(client);
-        app.use(routeBuilder(client));
+        app.use("/"+config.sessionName,routeBuilder(client));
     })
     .catch((erro) => {
       console.log(erro);
     });
+
 app.get('/', (req, res) => res.send('Express + TypeScript Server'));
 app.listen(PORT, () => {
   console.log(`⚡️[server]: Server is running at http://localhost:${PORT}`);
