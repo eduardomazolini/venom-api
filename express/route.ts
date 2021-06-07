@@ -71,7 +71,7 @@ function routeBuilder(venom:venom.Whatsapp): core.Router {
     venomRoutes.post('/send-audio',sendAudio);
     venomRoutes.post('/send-video',sendVideo);
     venomRoutes.post('/send-document/:extension',sendDocument);
-    venomRoutes.post('/send-link',sendLink);
+    venomRoutes.post('/send-link',sendLink(venom));
     venomRoutes.post('/read-message',readMessage);
     venomRoutes.delete('/messages',messagesDelete);
 
