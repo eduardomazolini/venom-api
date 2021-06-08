@@ -1,5 +1,26 @@
 import venom from 'venom-bot';
 import { SocketStream } from 'venom-bot/dist/api/model/enum/socket-state';
+import config from '../config/default.json';
+
+const WEBHOOK = config.webhook;
+function catchQR_controller(qrCode: string,
+    asciiQR: string,
+    attempt: number,
+    urlCode?: string) : void {
+console.log('++++++++++catchQR++++++++++')
+console.log('Number of attempts to read the qrcode: ', attempt);
+console.log('Terminal qrcode: ');
+console.log(asciiQR);
+//console.log('base64 image string qrcode: ', qrCode);
+console.log('urlCode (data-ref): ', urlCode);
+}
+
+function statusFind_controller(statusGet: string, session: string):void{
+console.log('++++++++++statusFind++++++++++')
+console.log('Status Session: ', statusGet); //return isLogged || notLogged || browserClose || qrReadSuccess || qrReadFail || autocloseCalled || desconnectedMobile || deleteToken || chatsAvailable || deviceNotConnected || serverWssNotConnected || noOpenBrowser
+//Create session wss return "serverClose" case server for close
+console.log('Session name: ', session);
+}
 
 function ack(ack: venom.Ack): void {
     console.log('==========ack==========');
@@ -49,6 +70,8 @@ function streamChange(state: SocketStream): void {
 }
 
 export {
+    catchQR_controller,
+    statusFind_controller,
     ack,
     addedToGroup,
     anyMessage,

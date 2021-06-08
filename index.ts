@@ -5,8 +5,8 @@ import {catchQR, statusFind, start} from './venom/route';
 import {routeBuilder} from './express/route';
 const app = express();
 const PORT = config.api.port;
-app.use(express.json())
-app.use(express.urlencoded())
+app.use(express.json());
+app.use(express.urlencoded());
 
 create(config.sessionName, catchQR, statusFind)
     .then((client) => {
