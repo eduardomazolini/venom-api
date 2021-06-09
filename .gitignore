@@ -3,3 +3,6 @@ build/
 tokens/
 config/
 config/default.json
+package-lock.json
+yarn.lock
+.vscode/

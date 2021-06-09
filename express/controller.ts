@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import config from '../config/default.json';
 import path from 'path';
 import ogs from 'open-graph-scraper';
+import axios from 'axios';
 
 async function phoneLib(phone: string): Promise<string> {
     const lib = await import("../phone-library/"+config.phoneStrategy.phoneLibrary);
@@ -119,48 +120,54 @@ function sendContact(){
 
 function sendImage(venom:venom.Whatsapp){
     return async (req:Request, res:Response) => {
-        let to = "";
-        if (!!req.body.to)
-            to = req.body.to;
-        if (!!req.body.phone)
-            to = await phoneLib(<string> req.body.phone);
-        if (!to) {
-            res.status(500).send({"message":"not 'to' field"});
-            return;
-        }
+        try{
+            const file = req.files;
+            let filename = req.body.filename || "";
+            let image = <string> req.body.image || "";
 
-        let image = "";
-        if (!!req.body.image) {
-            image = req.body.image;
-        } else {
-            res.status(500).send({"message":"not 'image' field"});
-            return;
-        }
+            if(image.startsWith('http')){
+                let download = await axios.get(image, {
+                    responseType: 'arraybuffer'
+                  })
+                let contentType = download.headers['content-type']
+                let body = Buffer.from(download.data, 'binary').toString('base64')
+                image = "data:"+contentType+";base64,"+body
+            }
 
-        let caption = req.body.caption;
-        if (!caption)
-            caption = req.body.message;
+            if (!!file && !!file.image && !Array.isArray(file.image)){
+                image = "data:"+file.image.mimetype+";base64,"+file.image.data.toString('base64');
+                filename = file.image.name;
+            }
         
-        let filename = req.body.filename;
+            let to = req.body.to || await phoneLib(<string> req.body.phone);
+            let caption = req.body.caption || req.body.message;
 
-        let mimetype = base64MimeType(image);
-        let base64HasMime = !!mimetype;
-        if (!mimetype)
-            mimetype = req.body.mimetype;
-        if (!mimetype && !!path.extname(filename))
-            mimetype = 'image/'+path.extname(filename).slice(1);
+            let mimetype = base64MimeType(image);
+            let base64HasMime = !!mimetype;
+            if (!mimetype)
+                mimetype = req.body.mimetype;
+            if (!mimetype && !!path.extname(filename))
+                mimetype = 'image/'+path.extname(filename).slice(1);
+            if (!mimetype){
+                res.status(500).send({"message":"image not have mimeType"});
+                return;
+            }
 
-        if (!mimetype){
-            res.status(500).send({"message":"image not have mimeType"});
-            return;
-        }
-        if (!filename)
-            filename = 'arquivo.'+mimetype.split('/')[1];
+            if (!filename)
+                filename = 'arquivo.'+mimetype.split('/')[1];
 
-        if (!base64HasMime){
-            image = "data:"+mimetype+";base64,"+image;
-        }
-        try {
+            if (!base64HasMime){
+                image = "data:"+mimetype+";base64,"+image;
+            }
+            if (!to) {
+                res.status(500).send({"message":"not 'to' field"});
+                return;
+            }
+            if (!image) {
+                res.status(500).send({"message":"not 'image' field"});
+                return;
+            }
+
             console.log("mimetype :",mimetype);
             console.log("filename :",filename);
             console.log("sendImage :",image.slice(0,30)+'...');
@@ -180,7 +187,7 @@ function sendVideo(){
 
 }
 
-function sendDocument(){
+function sendDocument(venom:venom.Whatsapp){
 
 }
 
