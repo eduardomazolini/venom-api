@@ -5,7 +5,8 @@
   "scripts": {
     "build": "tsc --project ./",
     "start": "nodemon index.ts",
-    "dev": "tsc -w"
+    "dev": "tsc -w",
+    "terminal": "ts-node"
   },
   "nodemonConfig": {
     "ignore": [
@@ -18,6 +19,7 @@
     "axios": "^0.21.1",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.1",
+    "express-validator": "^6.11.1",
     "feathers": "^2.2.4",
     "open-graph-scraper": "^4.8.2",
     "venom-bot": "^3.0.18"

@@ -1,55 +1,23 @@
 import venom from 'venom-bot';
 import { Request, Response } from 'express';
-import config from '../config/default.json';
+import {phoneLib, base64MimeType, validationResultReturn} from './helper';
 import path from 'path';
-import ogs from 'open-graph-scraper';
 import axios from 'axios';
 
-async function phoneLib(phone: string): Promise<string> {
-    const lib = await import("../phone-library/"+config.phoneStrategy.phoneLibrary);
-    return lib.default(phone);
+
+import { check, body, CustomValidator, CustomSanitizer } from 'express-validator';
+
+const toSanitizer: CustomSanitizer = async (to, meta) => {
+    if (!!to) return to;
+    if (!!meta.req.body.phone)
+        return await phoneLib(<string> meta.req.body.phone);
+    return "";
 }
 
-function base64MimeType(encoded: string) {
-    let result = null;
-    if (typeof encoded !== 'string') {
-      return result;
-    }
-  
-    const mime = encoded.match(/data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*,.*/);
-    if (mime && mime.length) {
-      result = mime[1];
-    }
-  
-    return result;
-}
-
-async function getLinkData(url:string):Promise<{ linkUrl: string;
-                                                 image?: string;
-                                                 title?: string;
-                                                 linkDescription?: string;
-                                               }> {
-    const options = { url: '' };
-    return ogs(options)
-      .then((data:ogs.SuccessResult | ogs.ErrorResult) => {
-        const { error, result } = data;
-        if (!error && result.success==true) {
-            let image = result.ogImageURL;
-            let linkUrl = result.ogUrl || url;
-            let title = result.ogTitle;
-            let linkDescription = result.ogDescription;
-            return  {
-                image,
-                linkUrl,
-                title,
-                linkDescription
-            }
-        } else {
-            return {
-                "linkUrl":url
-            }
-        }
-      })
+const toContent: CustomSanitizer = async (content, meta) => {
+    console.log(content)
+    if (!!content) return content;
+    return meta.req.body.message;
 }
 //Instância
 
@@ -78,41 +46,48 @@ function restoreSession(){
 }
 
 //Mensagens
-function sendText(venom:venom.Whatsapp){
-    return async (req:Request, res:Response) => {
-        let content = "";
-        if (!!req.body.message) {
-            content = req.body.message;
-        } else {
-            res.status(500).send({"message":"not 'to' field"});
-            return;
-        }
+function sendText(){
+    return [
+        body('to').customSanitizer(toSanitizer).not().isEmpty(),
+        body('content').customSanitizer(toContent).not().isEmpty(),
+        validationResultReturn(),
+        async (req:Request, res:Response) => {
+            try{
 
-        let to = "";
-        if (!!req.body.to) {
-            to = req.body.to;
-        }
-        if (!!req.body.phone) {
-            to = await phoneLib(<string> req.body.phone);
-        }
-        if (!to) {
-            res.status(500).send({"message":"not 'to' field"});
-            return;
-        }
-
-        try{
-            if (!!req.body.quotedMsg){
+                const to = req.body.to;
+                console.log("TO: ",to);
+                const content = req.body.content;
+                console.log('entrou aqui')
                 const quotedMsg = req.body.quotedMsg;
-                await venom.reply(to, content, quotedMsg);
-            } else {
-                await venom.sendText(to, content);
+                
+                const venom = req.venom;
+                if (!venom) throw new Error("Venom was not loaded")
+
+/*
+                if (!content) throw Error("not 'message' field")
+
+
+                let to = "";
+                if (!!req.body.to) {
+                    to = req.body.to;
+                }
+                if (!!req.body.phone) {
+                    to = await phoneLib(<string> req.body.phone);
+                }
+                if (!to) throw Error("not 'to' field");
+*/
+                let venomReturn
+                if (!!quotedMsg){                
+                    venomReturn = await venom.reply(to, content, quotedMsg);
+                } else {
+                    venomReturn = await venom.sendText(to, content);
+                }
+                res.status(200).send(venomReturn);
+            } catch(error){
+                res.status(500).send({"error":error.message});
             }
-            res.status(200).send({"message":"enviado"});
-        } catch(error){
-            res.status(500).send({"message":error.message});
-        }
+        }]
     }
-}
 
 function sendContact(){
 

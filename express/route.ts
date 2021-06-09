@@ -1,6 +1,8 @@
 import venom from 'venom-bot'
 import {Router} from 'express'
 import * as core from 'express-serve-static-core'
+import { check, body, CustomValidator, CustomSanitizer } from 'express-validator';
+
 import {
         //Instância
         qrCode,
@@ -65,7 +67,7 @@ function routeBuilder(venom:venom.Whatsapp): core.Router {
     venomRoutes.get('/restore-session',restoreSession);
 
     //Mensagens
-    venomRoutes.post('/send-text', sendText(venom));
+    venomRoutes.post('/send-text', sendText());
     venomRoutes.post('/send-contact',sendContact);
     venomRoutes.post('/send-image',sendImage(venom));
     venomRoutes.post('/send-audio',sendAudio);
