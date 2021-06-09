@@ -22,6 +22,7 @@
     "express-validator": "^6.11.1",
     "feathers": "^2.2.4",
     "open-graph-scraper": "^4.8.2",
+    "sharp": "^0.28.3",
     "venom-bot": "^3.0.18"
   },
   "devDependencies": {
