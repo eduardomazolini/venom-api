@@ -1,26 +1,28 @@
-FROM node:15
+FROM node:current-stretch
 
-# Create app directory
+RUN mkdir -p /usr/src/app
+
 WORKDIR /usr/src/app
 
+#install chrome
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' | tee /etc/apt/sources.list.d/google-chrome.list 
 
-# Set the Chrome repo.
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list
+RUN apt update
 
-# Install Chrome.
-RUN apt-get update && apt-get -y install google-chrome-stable
+RUN apt install google-chrome-stable fonts-freefont-ttf libxss1 --no-install-recommends -y \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
-COPY package*.json ./
+RUN apt upgrade -y
 
-RUN npm install --save
-RUN npm install sharp
+COPY . /usr/src/app
 
-# Bundle app source
-ADD . /usr/src/app
+RUN npm install nodemon
+RUN npm install
+
+
+#PORT will most likely be set by your cloud provider. If not, uncomment the next line and set it here
+# ENV PORT 8080
 
 EXPOSE 8088
-CMD [ "npm", "start" ]
+
+ENTRYPOINT [ "npm", "start"]
