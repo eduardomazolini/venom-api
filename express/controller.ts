@@ -4,308 +4,251 @@ import {phoneLib, base64MimeType, validationResultReturn} from './helper';
 import path from 'path';
 import axios from 'axios';
 
-
-import { check, body, CustomValidator, CustomSanitizer } from 'express-validator';
-
-const toSanitizer: CustomSanitizer = async (to, meta) => {
-    if (!!to) return to;
-    if (!!meta.req.body.phone)
-        return await phoneLib(<string> meta.req.body.phone);
-    return "";
-}
-
-const toContent: CustomSanitizer = async (content, meta) => {
-    console.log(content)
-    if (!!content) return content;
-    return meta.req.body.message;
-}
 //Instância
 
-function qrCode(){
-
+function qrCode(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function qrCodeImage(){
-
+function qrCodeImage(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function restart(){
-
+function restart(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function disconnect(){
-
+function disconnect(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function status(){
-
+function status(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function restoreSession(){
-
+function restoreSession(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
 //Mensagens
-function sendText(){
-    return [
-        body('to').customSanitizer(toSanitizer).not().isEmpty(),
-        body('content').customSanitizer(toContent).not().isEmpty(),
-        validationResultReturn(),
-        async (req:Request, res:Response) => {
-            try{
-
-                const to = req.body.to;
-                console.log("TO: ",to);
-                const content = req.body.content;
-                console.log('entrou aqui')
-                const quotedMsg = req.body.quotedMsg;
-                
-                const venom = req.venom;
-                if (!venom) throw new Error("Venom was not loaded")
-
-/*
-                if (!content) throw Error("not 'message' field")
-
-
-                let to = "";
-                if (!!req.body.to) {
-                    to = req.body.to;
-                }
-                if (!!req.body.phone) {
-                    to = await phoneLib(<string> req.body.phone);
-                }
-                if (!to) throw Error("not 'to' field");
-*/
-                let venomReturn
-                if (!!quotedMsg){                
-                    venomReturn = await venom.reply(to, content, quotedMsg);
-                } else {
-                    venomReturn = await venom.sendText(to, content);
-                }
-                res.status(200).send(venomReturn);
-            } catch(error){
-                res.status(500).send({"error":error.message});
+function sendText(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {
+        try{
+            const to = req.body.to;
+            const content = req.body.content;
+            const quotedMsg = req.body.quotedMsg;
+            
+            let venomReturn
+            if (!!quotedMsg){                
+                venomReturn = await venom.reply(to, content, quotedMsg);
+            } else {
+                venomReturn = await venom.sendText(to, content);
             }
-        }]
+            res.status(200).send(venomReturn);
+        } catch(error){
+            res.status(500).send({"error":error.message});
+        }
     }
+}
 
-function sendContact(){
-
+function sendContact(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
 function sendImage(venom:venom.Whatsapp){
     return async (req:Request, res:Response) => {
         try{
+            let to = req.body.to;
+            let caption = req.body.caption;
+            let base64:string = req.body.base64;
+            let mimetype:string|undefined = req.body.mimetype;
+            let filename:string|undefined = req.body.filename;
             const file = req.files;
-            let filename = req.body.filename || "";
-            let image = <string> req.body.image || "";
 
-            if(image.startsWith('http')){
-                let download = await axios.get(image, {
+            if(base64.startsWith('http')){
+                let download = await axios.get(base64, {
                     responseType: 'arraybuffer'
                   })
-                let contentType = download.headers['content-type']
+                  mimetype = download.headers['content-type']
                 let body = Buffer.from(download.data, 'binary').toString('base64')
-                image = "data:"+contentType+";base64,"+body
+                base64 = "data:"+mimetype+";base64,"+body
             }
 
             if (!!file && !!file.image && !Array.isArray(file.image)){
-                image = "data:"+file.image.mimetype+";base64,"+file.image.data.toString('base64');
+                base64 = "data:"+file.image.mimetype+";base64,"+file.image.data.toString('base64');
+                mimetype = file.image.mimetype;
                 filename = file.image.name;
             }
         
-            let to = req.body.to || await phoneLib(<string> req.body.phone);
-            let caption = req.body.caption || req.body.message;
-
-            let mimetype = base64MimeType(image);
-            let base64HasMime = !!mimetype;
-            if (!mimetype)
-                mimetype = req.body.mimetype;
-            if (!mimetype && !!path.extname(filename))
+            if (!mimetype && !!filename && !!path.extname(filename))
                 mimetype = 'image/'+path.extname(filename).slice(1);
-            if (!mimetype){
-                res.status(500).send({"message":"image not have mimeType"});
-                return;
-            }
 
-            if (!filename)
+            let base64HasMime = base64MimeType(base64);
+            mimetype = !!base64HasMime ? base64HasMime : mimetype;
+
+            if (!base64HasMime && !!mimetype){
+                base64 = "data:"+mimetype+";base64,"+base64;
+            }
+                
+            if (!filename && !!mimetype)
                 filename = 'arquivo.'+mimetype.split('/')[1];
 
-            if (!base64HasMime){
-                image = "data:"+mimetype+";base64,"+image;
-            }
-            if (!to) {
-                res.status(500).send({"message":"not 'to' field"});
-                return;
-            }
-            if (!image) {
-                res.status(500).send({"message":"not 'image' field"});
+
+            if (!mimetype){
+                res.status(400).send({
+                    "errors": [
+                      {
+                        "location": "body",
+                        "msg": "Invalid value",
+                        "param": "mimetype"
+                      }
+                    ]
+                  }
+                  );
                 return;
             }
 
             console.log("mimetype :",mimetype);
             console.log("filename :",filename);
-            console.log("sendImage :",image.slice(0,30)+'...');
-            await venom.sendImageFromBase64(to, image, filename, caption);
-            res.status(200).send({"message":"enviado"});
+            console.log("sendImage :",base64.slice(0,30)+'...');
+            const venomReturn = await venom.sendImageFromBase64(to, base64, filename, caption);
+            res.status(200).send(venomReturn);
         } catch(error) {
-            res.status(500).send({"message":error});
+            res.status(500).send({"error":error});
         }
     }
 }
 
-function sendAudio(){
-
+function sendAudio(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function sendVideo(){
-
+function sendVideo(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
 function sendDocument(venom:venom.Whatsapp){
-
+    return async (req:Request, res:Response) => {}
 }
 
 function sendLink(venom:venom.Whatsapp){
     return async (req:Request, res:Response) => {
-        let content = "";
-        if (!!req.body.message) {
-            content = req.body.message;
-        } else {
-            res.status(500).send({"message":"not 'to' field"});
-            return
-        }
-
-        let to = "";
-        if (!!req.body.to) {
-            to = req.body.to;
-        }
-        if (!!req.body.phone) {
-            to = await phoneLib(<string> req.body.phone);
-        }
-        if (!to) {
-            res.status(500).send({"message":"not 'to' field"});
-            return
-        }
-
-        let linkUrl=req.body.linkUrl;
-        if (!linkUrl){
-            res.status(500).send({"message":"body not include 'linkUrl' field"});
-            return
-        }
-
         try {
-            await venom.sendLinkPreview(to, linkUrl, content);
+            let chatId = req.body.chatId;
+            let url=req.body.url;
+            let title = req.body.title;
+
+            await venom.sendLinkPreview(chatId, url, title);
             res.status(200).send({"message":"enviado"});
         } catch(error){
-            res.status(500).send({"message":error.message});
+            res.status(500).send({"error":error.message});
         }
     }
 }
 
-function readMessage(){
-
+function readMessage(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function messagesDelete(){
-
+function messagesDelete(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function sendTextStatus(){
-
+function sendTextStatus(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function sendImageStatus(){
-
+function sendImageStatus(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
 //Chats
-function chats(){
-
+function chats(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function chatsPhone(){
-
+function chatsPhone(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function chatMessages(){
-
+function chatMessages(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
 //Contatos
-function contacts(){
-
+function contacts(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function contactsPhone(){
-
+function contactsPhone(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function profilePicture(){
-
+function profilePicture(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function phoneExists(){
-
+function phoneExists(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 } 
 
 //Grupo
-function createGroup(){
-
+function createGroup(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
     
-function updateGroupName(){
-
+function updateGroupName(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function addAdmin(){
-
+function addAdmin(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function removeAdmin(){
-
+function removeAdmin(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function addParticipant(){
-
+function addParticipant(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function removeParticipant(){
-
+function removeParticipant(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function leaveGroup(){
-
+function leaveGroup(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function groupMetadataPhone(){
-
+function groupMetadataPhone(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
  
 //Fila
-function queue(){
-
+function queue(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function queueDelete(){
-
+function queueDelete(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
      
 //Webhooks
-function updateWebhookDelivery(){
-
+function updateWebhookDelivery(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function updateWebhookDisconnected(){
-
+function updateWebhookDisconnected(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function updateWebhookReceived(){
-
+function updateWebhookReceived(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
-function updateWebhookMessageStatus(){
-
+function updateWebhookMessageStatus(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {}
 }
 
 
