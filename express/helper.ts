@@ -33,8 +33,8 @@ export function addVenomOnRequest(client:Whatsapp){
 }
 
 export function phoneSanitizer(field:string){
-  const customSanitizer: CustomSanitizer = async (to:any, meta:Meta) => {
-    if (!!to) return to;
+  const customSanitizer: CustomSanitizer = async (input:any, meta:Meta) => {
+    if (!!input) return input;
     if (!!meta.req.body[field])
         return await phoneLib(<string> meta.req.body[field]);
     return "";
