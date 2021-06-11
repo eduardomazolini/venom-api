@@ -1,8 +1,8 @@
 import venom from 'venom-bot'
-import {Router} from 'express'
-import * as core from 'express-serve-static-core'
-import { check, body, CustomValidator, CustomSanitizer } from 'express-validator';
-import {phoneLib, base64MimeType, validationResultReturn} from './helper';
+import { Router } from 'express'
+import { body, CustomSanitizer } from 'express-validator';
+import { phoneLib, validationResultReturn } from './helper';
+import fileUpload from 'express-fileupload';
 
 import {
         //Instância
@@ -69,7 +69,7 @@ function considerAlias(alias: string){
     return customSanitizer
 }
 
-function routeBuilder(venom:venom.Whatsapp): core.Router {
+function routeBuilder(venom:venom.Whatsapp): Router {
     const venomRoutes = Router()
 
     //https://api.z-api.io/instances/MINHA_INSTANCE/token/MEU_TOKEN
@@ -91,15 +91,33 @@ function routeBuilder(venom:venom.Whatsapp): core.Router {
     ]);
     venomRoutes.post('/send-contact',sendContact(venom));
     venomRoutes.post('/send-image',[
+        fileUpload({
+            limits: { fileSize: 16 * 1024 * 1024 },
+          }),
         body('to').customSanitizer(phoneSanitizer).not().isEmpty(),
         body('caption').customSanitizer(considerAlias('content')).customSanitizer(considerAlias('message')),
         body('base64').customSanitizer(considerAlias('url')).customSanitizer(considerAlias('image')).customSanitizer(considerAlias('file')),
         validationResultReturn(),
         sendImage(venom)
     ]);
-    venomRoutes.post('/send-audio',sendAudio(venom));
-    venomRoutes.post('/send-video',sendVideo(venom));
-    venomRoutes.post('/send-document/:extension',sendDocument(venom));
+    venomRoutes.post('/send-audio',[
+        fileUpload({
+            limits: { fileSize: 16 * 1024 * 1024 },
+          }),
+        sendAudio(venom)
+    ]);
+    venomRoutes.post('/send-video',[
+        fileUpload({
+            limits: { fileSize: 16 * 1024 * 1024 },
+          }),
+        sendVideo(venom)
+    ]);
+    venomRoutes.post('/send-document/:extension',[
+        fileUpload({
+            limits: { fileSize: 100 * 1024 * 1024 },
+          }),
+        sendDocument(venom)
+    ]);
     venomRoutes.post('/send-link',[
         body('chatId').customSanitizer(considerAlias('to')).customSanitizer(phoneSanitizer).not().isEmpty(),
         body('url').customSanitizer(considerAlias('linkUrl')).not().isEmpty(),
