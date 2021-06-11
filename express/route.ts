@@ -121,7 +121,12 @@ function routeBuilder(venom:venom.Whatsapp): Router {
         validationResultReturn(),
         readMessage(venom)
     ]);
-    venomRoutes.delete('/messages',messagesDelete(venom));
+    venomRoutes.delete('/messages',[
+        body('chatId').customSanitizer(considerAlias('to')).customSanitizer(phoneSanitizer('phone')).notEmpty(),
+        body('messageId').notEmpty(),
+        validationResultReturn(),
+        messagesDelete(venom)
+    ]);
 
 
     //Status

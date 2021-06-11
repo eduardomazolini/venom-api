@@ -178,7 +178,21 @@ function readMessage(venom:venom.Whatsapp){
 }
 
 function messagesDelete(venom:venom.Whatsapp){
-    return async (req:Request, res:Response) => {}
+    //#TODO: Issue Open 'https://github.com/orkestral/venom/issues/977'
+    return async (req:Request, res:Response) => {
+        try {
+            const chatId = req.body.chatId;
+            const messageId = req.body.messageId; 
+            console.log("messagesDelete")
+            console.log("chatId",chatId)
+            console.log("messageId",messageId)
+            const venomReturn = await venom.deleteMessage(chatId,messageId);
+            res.status(200).send(venomReturn);
+        } catch (error) {
+            res.status(500).send({"error":error}); 
+        }
+
+    }
 }
 
 function sendTextStatus(venom:venom.Whatsapp){
