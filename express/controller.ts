@@ -7,11 +7,27 @@ import axios from 'axios';
 //Instância
 
 function qrCode(venom:venom.Whatsapp){
-    return async (req:Request, res:Response) => {}
+    return async (req:Request, res:Response) => {
+        try{
+            console.log("qrCode")
+            const venomReturn = await venom.getQrCode();
+            res.status(200).send(venomReturn);
+        } catch(error) {
+            res.status(500).send({"error":error});
+        }
+    }
 }
 
 function qrCodeImage(venom:venom.Whatsapp){
-    return async (req:Request, res:Response) => {}
+    return async (req:Request, res:Response) => {
+        try{
+            console.log("qrCode")
+            const venomReturn = await venom.getQrCode();
+            res.status(200).send(`<img src='${venomReturn.base64Image}'>`);
+        } catch(error) {
+            res.status(500).send({"error":error});
+        }
+    }
 }
 
 function restart(venom:venom.Whatsapp){
@@ -156,8 +172,8 @@ function sendLink(venom:venom.Whatsapp){
             let url=req.body.url;
             let title = req.body.title;
 
-            await venom.sendLinkPreview(chatId, url, title);
-            res.status(200).send({"message":"enviado"});
+            const venomReturn = await venom.sendLinkPreview(chatId, url, title);
+            res.status(200).send(venomReturn);
         } catch(error){
             res.status(500).send({"error":error.message});
         }
