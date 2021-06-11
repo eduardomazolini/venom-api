@@ -1,7 +1,7 @@
 import ogs from 'open-graph-scraper';
 import config from '../config/default.json';
 import { Request, Response, NextFunction } from 'express';
-import { validationResult } from 'express-validator';
+import { CustomSanitizer, Meta, validationResult } from 'express-validator';
 import { Whatsapp } from 'venom-bot';
 
 
@@ -30,6 +30,21 @@ export function addVenomOnRequest(client:Whatsapp){
     req.venom = client;
     next()
   }  
+}
+
+export async function phoneSanitizer<CustomSanitizer>(to:any, meta:Meta) {
+  if (!!to) return to;
+  if (!!meta.req.body.phone)
+      return await phoneLib(<string> meta.req.body.phone);
+  return "";
+}
+
+export function considerAlias(alias: string){
+  const customSanitizer: CustomSanitizer = async (input, meta) => {
+      if (!!input) return input;
+      return meta.req.body['alias'] || "";
+  }
+  return customSanitizer
 }
 
 export function validationResultReturn(){

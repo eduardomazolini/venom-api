@@ -1,7 +1,7 @@
 import venom from 'venom-bot'
 import { Router } from 'express'
-import { body, CustomSanitizer } from 'express-validator';
-import { phoneLib, validationResultReturn } from './helper';
+import { body } from 'express-validator';
+import { considerAlias, phoneSanitizer, validationResultReturn } from './helper';
 import fileUpload from 'express-fileupload';
 
 import {
@@ -54,20 +54,6 @@ import {
 
        } from './controller'
 
-const phoneSanitizer: CustomSanitizer = async (to, meta) => {
-    if (!!to) return to;
-    if (!!meta.req.body.phone)
-        return await phoneLib(<string> meta.req.body.phone);
-    return "";
-}
-
-function considerAlias(alias: string){
-    const customSanitizer: CustomSanitizer = async (input, meta) => {
-        if (!!input) return input;
-        return meta.req.body['alias'] || "";
-    }
-    return customSanitizer
-}
 
 function routeBuilder(venom:venom.Whatsapp): Router {
     const venomRoutes = Router()
