@@ -165,7 +165,16 @@ function sendLink(venom:venom.Whatsapp){
 }
 
 function readMessage(venom:venom.Whatsapp){
-    return async (req:Request, res:Response) => {}
+    return async (req:Request, res:Response) => {
+    try{
+        const chatId = req.body.chatId;
+        const venomReturn = await venom.sendSeen(chatId);
+        res.status(200).send(venomReturn);
+    } catch(error) {
+        res.status(500).send({"error":error});
+    }
+        
+    }
 }
 
 function messagesDelete(venom:venom.Whatsapp){
