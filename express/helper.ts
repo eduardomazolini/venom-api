@@ -45,7 +45,7 @@ export function phoneSanitizer(field:string){
 export function considerAlias(alias: string){
   const customSanitizer: CustomSanitizer = async (input, meta) => {
       if (!!input) return input;
-      return meta.req.body['alias'] || "";
+      return meta.req.body[alias] || "";
   }
   return customSanitizer
 }
