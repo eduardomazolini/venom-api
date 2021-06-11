@@ -61,7 +61,7 @@ function routeBuilder(venom:venom.Whatsapp): Router {
     //https://api.z-api.io/instances/MINHA_INSTANCE/token/MEU_TOKEN
 
     //Instância
-    venomRoutes.get('​/qr-code',qrCode(venom));
+    venomRoutes.get('/qr-code',qrCode(venom));
     venomRoutes.get('/qr-code/image',qrCodeImage(venom));
     venomRoutes.get('/restart',restart(venom));
     venomRoutes.get('/disconnect',disconnect(venom));
