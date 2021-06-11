@@ -112,7 +112,7 @@ function routeBuilder(venom:venom.Whatsapp): Router {
     venomRoutes.post('/send-link',[
         body('chatId').customSanitizer(considerAlias('to')).customSanitizer(phoneSanitizer('phone')).notEmpty(),
         body('url').customSanitizer(considerAlias('linkUrl')).notEmpty(),
-        body('title').customSanitizer(considerAlias('content')).customSanitizer(considerAlias('message')).notEmpty(),
+        body('title').customSanitizer(considerAlias('content')).customSanitizer(considerAlias('message')),
         validationResultReturn(),
         sendLink(venom)
     ]);
