@@ -70,17 +70,22 @@ function routeBuilder(venom:venom.Whatsapp): Router {
 
     //Mensagens
     venomRoutes.post('/send-text', [
-        body('to').customSanitizer(phoneSanitizer).not().isEmpty(),
+        body('to').customSanitizer(phoneSanitizer('phone')).not().isEmpty(),
         body('content').customSanitizer(considerAlias('message')).not().isEmpty(),
         validationResultReturn(),
         sendText(venom)
     ]);
-    venomRoutes.post('/send-contact',sendContact(venom));
+    venomRoutes.post('/send-contact',[
+        body('to').customSanitizer(phoneSanitizer('phone')).not().isEmpty(),
+        body('contactsId').customSanitizer(considerAlias('contactId')).customSanitizer(phoneSanitizer('contactPhone')).notEmpty(),
+        validationResultReturn(),
+        sendContact(venom)
+    ]);
     venomRoutes.post('/send-image',[
         fileUpload({
             limits: { fileSize: 16 * 1024 * 1024 },
           }),
-        body('to').customSanitizer(phoneSanitizer).not().isEmpty(),
+        body('to').customSanitizer(phoneSanitizer('phone')).not().isEmpty(),
         body('caption').customSanitizer(considerAlias('content')).customSanitizer(considerAlias('message')),
         body('base64').customSanitizer(considerAlias('url')).customSanitizer(considerAlias('image')).customSanitizer(considerAlias('file')),
         validationResultReturn(),
@@ -105,7 +110,7 @@ function routeBuilder(venom:venom.Whatsapp): Router {
         sendDocument(venom)
     ]);
     venomRoutes.post('/send-link',[
-        body('chatId').customSanitizer(considerAlias('to')).customSanitizer(phoneSanitizer).not().isEmpty(),
+        body('chatId').customSanitizer(considerAlias('to')).customSanitizer(phoneSanitizer('phone')).not().isEmpty(),
         body('url').customSanitizer(considerAlias('linkUrl')).not().isEmpty(),
         body('title').customSanitizer(considerAlias('content')).customSanitizer(considerAlias('message')).not().isEmpty(),
         validationResultReturn(),

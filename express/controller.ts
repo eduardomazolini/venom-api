@@ -1,6 +1,6 @@
 import venom from 'venom-bot';
 import { Request, Response } from 'express';
-import {phoneLib, base64MimeType, validationResultReturn} from './helper';
+import { base64MimeType } from './helper';
 import path from 'path';
 import axios from 'axios';
 
@@ -52,7 +52,25 @@ function sendText(venom:venom.Whatsapp){
 }
 
 function sendContact(venom:venom.Whatsapp){
-    return async (req:Request, res:Response) => {}
+    return async (req:Request, res:Response) => {
+        try{
+            const to = req.body.to;
+            const contactsId = <string> req.body.contactsId;
+            const name = req.body.name;
+
+            const valid = await venom.checkNumberStatus(contactsId);
+            if (valid.status != 200) {
+                res.status(500).send({"error":valid})
+                return
+            }
+        
+            const venomResponse = await venom.sendContactVcard(to,contactsId,name);
+            res.status(200).send(venomResponse)
+        } catch(error) {
+            res.status(500).send({"error":error.message})
+        }
+
+    }
 }
 
 function sendImage(venom:venom.Whatsapp){

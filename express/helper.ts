@@ -32,11 +32,14 @@ export function addVenomOnRequest(client:Whatsapp){
   }  
 }
 
-export async function phoneSanitizer<CustomSanitizer>(to:any, meta:Meta) {
-  if (!!to) return to;
-  if (!!meta.req.body.phone)
-      return await phoneLib(<string> meta.req.body.phone);
-  return "";
+export function phoneSanitizer(field:string){
+  const customSanitizer: CustomSanitizer = async (to:any, meta:Meta) => {
+    if (!!to) return to;
+    if (!!meta.req.body[field])
+        return await phoneLib(<string> meta.req.body[field]);
+    return "";
+  }
+  return customSanitizer
 }
 
 export function considerAlias(alias: string){
