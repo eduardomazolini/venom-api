@@ -101,6 +101,10 @@ function routeBuilder(venom:venom.Whatsapp): Router {
         fileUpload({
             limits: { fileSize: 16 * 1024 * 1024 },
           }),
+        body('to').customSanitizer(phoneSanitizer('phone')).notEmpty(),
+        body('caption').customSanitizer(considerAlias('content')).customSanitizer(considerAlias('message')),
+        body('base64').customSanitizer(considerAlias('url')).customSanitizer(considerAlias('video')).customSanitizer(considerAlias('file')),
+        validationResultReturn(),
         sendVideo(venom)
     ]);
     venomRoutes.post('/send-document/:extension',[
