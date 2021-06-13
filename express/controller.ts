@@ -301,8 +301,8 @@ function readMessage(venom:venom.Whatsapp){
     }
 }
 
+//#TODO: Issue Open 'https://github.com/orkestral/venom/issues/977'
 function messagesDelete(venom:venom.Whatsapp){
-    //#TODO: Issue Open 'https://github.com/orkestral/venom/issues/977'
     return async (req:Request, res:Response) => {
         try {
             const chatId = req.body.chatId;
@@ -320,20 +320,104 @@ function messagesDelete(venom:venom.Whatsapp){
 }
 
 function sendTextStatus(venom:venom.Whatsapp){
-    return async (req:Request, res:Response) => {}
-}
+    return async (req:Request, res:Response) => {
+        try{
+            const status = req.body.status
+            const venomReturn = await venom.setProfileStatus(status);
+            res.status(200).send(venomReturn);
+        } catch (error) {
+            res.status(500).send({"error":error}); 
+        }
 
+    }
+}
+//TODO: Feito mas não funciona retorna sem erro sem alteração
 function sendImageStatus(venom:venom.Whatsapp){
-    return async (req:Request, res:Response) => {}
+    return async (req:Request, res:Response) => {
+        try{
+            let to = req.body.to || undefined;
+            let caption = req.body.caption;
+            let base64:string = req.body.base64;
+            let mimetype:string|undefined = req.body.mimetype;
+            let filename:string|undefined = req.body.filename;
+            const file = req.files;
+
+            if(base64.startsWith('http')){
+                let download = await axios.get(base64, {
+                    responseType: 'arraybuffer'
+                  })
+                  mimetype = download.headers['content-type']
+                let body = Buffer.from(download.data, 'binary').toString('base64')
+                base64 = "data:"+mimetype+";base64,"+body
+            }
+
+            if (!!file && !!file.image && !Array.isArray(file.image)){
+                base64 = "data:"+file.image.mimetype+";base64,"+file.image.data.toString('base64');
+                mimetype = file.image.mimetype;
+                filename = file.image.name;
+            }
+        
+            if (!mimetype && !!filename && !!path.extname(filename))
+                mimetype = 'image/'+path.extname(filename).slice(1);
+
+            let base64HasMime = base64MimeType(base64);
+            mimetype = !!base64HasMime ? base64HasMime : mimetype;
+
+            if (!base64HasMime && !!mimetype){
+                base64 = "data:"+mimetype+";base64,"+base64;
+            }
+                
+            if (!mimetype){
+                res.status(400).send({
+                    "errors": [
+                      {
+                        "location": "body",
+                        "msg": "Invalid value",
+                        "param": "mimetype"
+                      }
+                    ]
+                  }
+                  );
+                return;
+            }
+
+            console.log("mimetype :",mimetype);
+            console.log("filename :",filename);
+            console.log("sendImage :",base64.slice(0,30)+'...');
+            console.log("to :",to);
+            console.log("setProfilePic");
+            const venomReturn = await venom.setProfilePic(base64, to);
+            console.log("venomReturn: ", venomReturn);
+            res.status(200).send(venomReturn);
+        } catch(error) {
+            res.status(500).send({"error":error});
+        }
+    }
 }
 
 //Chats
 function chats(venom:venom.Whatsapp){
-    return async (req:Request, res:Response) => {}
+    return async (req:Request, res:Response) => {
+        try{
+            const venomReturn = await venom.getAllChats();
+            res.status(200).send(venomReturn);
+        } catch(error) {
+            res.status(500).send({"error":error});
+        }
+    }
 }
 
 function chatsPhone(venom:venom.Whatsapp){
-    return async (req:Request, res:Response) => {}
+    return async (req:Request, res:Response) => {
+        try{
+            const contactId = req.body.contactId
+            const venomReturn = await venom.getChatById(contactId);
+            res.status(200).send(venomReturn);
+        } catch(error) {
+            res.status(500).send({"error":error});
+        }
+        
+    }
 }
 
 function chatMessages(venom:venom.Whatsapp){

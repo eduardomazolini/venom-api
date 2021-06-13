@@ -129,6 +129,7 @@ function routeBuilder(venom:venom.Whatsapp): Router {
         validationResultReturn(),
         readMessage(venom)
     ]);
+    //#TODO: Issue Open 'https://github.com/orkestral/venom/issues/977'
     venomRoutes.delete('/messages',[
         body('chatId').customSanitizer(considerAlias('to')).customSanitizer(phoneSanitizer('phone')).notEmpty(),
         body('messageId').notEmpty(),
@@ -138,12 +139,26 @@ function routeBuilder(venom:venom.Whatsapp): Router {
 
 
     //Status
-    venomRoutes.post('/send-text-status',sendTextStatus(venom));
-    venomRoutes.post('/send-image-status',sendImageStatus(venom));
+
+    venomRoutes.post('/send-text-status',[
+        body('status').customSanitizer(considerAlias('message')).customSanitizer(considerAlias('content')).notEmpty(),
+        validationResultReturn(),
+        sendTextStatus(venom)
+    ]);
+    //TODO: Feito mas não funciona retorna sem erro sem alteração
+    venomRoutes.post('/send-image-status',[
+        fileUpload({
+            limits: { fileSize: 16 * 1024 * 1024 },
+          }),
+          body('to').customSanitizer(considerAlias('chatId')).customSanitizer(phoneSanitizer('phone')),
+          body('base64').customSanitizer(considerAlias('url')).customSanitizer(considerAlias('image')).customSanitizer(considerAlias('file')),
+        validationResultReturn(),
+        sendImageStatus(venom)
+    ]);
 
 
     //Chats
-    venomRoutes.get('​/chats',chats(venom));
+    venomRoutes.get('/chats',chats(venom));
     venomRoutes.get('​/chats/:phone',chatsPhone(venom));
     venomRoutes.get('​/chat-messages/:phone',chatMessages(venom));
 
