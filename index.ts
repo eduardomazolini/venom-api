@@ -14,7 +14,7 @@ app.use(express.urlencoded());
 create(config.sessionName, catchQR, statusFind,<CreateConfig>{
   folderNameToken: 'tokens',
   mkdirFolderToken: '',
-  headless: false, //Default: true
+  headless: true, //Default: true
   devtools: false,
   useChrome: true,
   debug: false,
