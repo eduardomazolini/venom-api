@@ -12,6 +12,12 @@
         "phoneOptions":{
             "DDD":"19"
         }
+    },
+    "webhook":{
+        "messages":"Put your webhook here.",
+        "qrcode":"Put your webhook here.",
+        "ack":"Put your webhook here.",
+        "states":"Put your webhook here."
     }
 }
 ```
