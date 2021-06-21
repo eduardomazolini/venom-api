@@ -40,7 +40,7 @@ function addedToGroup(chat: venom.Chat): void {
 function anyMessage(message: venom.Message): void {
     console.log('==========anyMessage==========');
     // if(!!WEBHOOK) axios.post(WEBHOOK,message);
-    console.log("message");
+    console.log(message);
 }
 
 function incomingCall(call: any): void {
