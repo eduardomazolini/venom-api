@@ -1,6 +1,6 @@
 import venom from 'venom-bot';
 import { Request, Response } from 'express';
-import { base64MimeType } from './helper';
+import { base64MimeType, resendMessages } from './helper';
 import path from 'path';
 import axios from 'axios';
 
@@ -44,6 +44,26 @@ function status(venom:venom.Whatsapp){
 
 function restoreSession(venom:venom.Whatsapp){
     return async (req:Request, res:Response) => {}
+}
+
+function allunreadmessages(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {
+        try{
+            console.log("AllUnreadMessages")
+            const resend = req.query.resend
+            const venomReturn = await venom.getAllUnreadMessages()
+            console.log(venomReturn)
+            if(!!resend){
+                resendMessages(venomReturn)
+                res.status(201).send();
+            } else {
+                res.status(200).send(venomReturn);
+            }
+
+        } catch (error) {
+            res.status(500).send({"error":error.message});
+        }
+    }
 }
 
 //Mensagens
@@ -96,7 +116,7 @@ function sendImage(venom:venom.Whatsapp){
             let caption = req.body.caption;
             let base64:string = req.body.base64;
             let mimetype:string|undefined = req.body.mimetype;
-            let filename:string|undefined = req.body.filename;
+            let filename:string = req.body.filename;
             const file = req.files;
 
             if(base64.startsWith('http')){
@@ -563,6 +583,7 @@ export {
     disconnect,
     status,
     restoreSession,
+    allunreadmessages,
     //Mensagens
     sendText,
     sendContact,

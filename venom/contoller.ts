@@ -62,7 +62,7 @@ function interfaceChange(state: {
     console.log(state.mode);
 }
 
-function message(message: venom.Message): void {
+function message(message: venom.Message|venom.PartialMessage): void {
     console.log('==========message==========');
     if(!!WEBHOOK) axios.post(WEBHOOK.messages,message);
     console.log(message);
