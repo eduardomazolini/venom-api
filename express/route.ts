@@ -12,6 +12,7 @@ import {
         disconnect,
         status,
         restoreSession,
+        allunreadmessages,
         //Mensagens
         sendText,
         sendContact,
@@ -67,6 +68,8 @@ function routeBuilder(venom:venom.Whatsapp): Router {
     venomRoutes.get('/disconnect',disconnect(venom));
     venomRoutes.get('​/status',status(venom));
     venomRoutes.get('/restore-session',restoreSession(venom));
+    venomRoutes.get('/all-unread-messages',allunreadmessages(venom));
+
 
     //Mensagens
     venomRoutes.post('/send-text', [
@@ -111,10 +114,14 @@ function routeBuilder(venom:venom.Whatsapp): Router {
         validationResultReturn(),
         sendVideo(venom)
     ]);
-    venomRoutes.post('/send-document/:extension',[
+    venomRoutes.post('/send-document',[
         fileUpload({
-            limits: { fileSize: 100 * 1024 * 1024 },
+            limits: { fileSize: 16 * 1024 * 1024 },
           }),
+        body('to').customSanitizer(phoneSanitizer('phone')).notEmpty(),
+        body('caption').customSanitizer(considerAlias('content')).customSanitizer(considerAlias('message')),
+        body('base64').customSanitizer(considerAlias('url')).customSanitizer(considerAlias('video')).customSanitizer(considerAlias('file')),
+        validationResultReturn(),
         sendDocument(venom)
     ]);
     venomRoutes.post('/send-link',[
