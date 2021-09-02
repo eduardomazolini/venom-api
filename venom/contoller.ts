@@ -8,7 +8,7 @@ function catchQR_controller(qrCode: string,
     asciiQR: string,
     attempt: number,
     urlCode?: string) : void {
-    if(!!WEBHOOK) axios.post(WEBHOOK+'/catch-qr',{ qrCode, attempt, urlCode });
+    if(!!WEBHOOK) axios.post(WEBHOOK.qrcode,{ qrCode, attempt, urlCode });
     console.log('++++++++++catchQR++++++++++')
     console.log('Number of attempts to read the qrcode: ', attempt);
     console.log('Terminal qrcode: ');
@@ -18,7 +18,7 @@ function catchQR_controller(qrCode: string,
 }
 
 function statusFind_controller(statusGet: string, session: string):void{
-    if(!!WEBHOOK) axios.post(WEBHOOK+'/status-find',{ statusGet, session });
+    if(!!WEBHOOK) axios.post(WEBHOOK.states,{ statusGet, session });
     console.log('++++++++++statusFind++++++++++')
     console.log('Status Session: ', statusGet); //return isLogged || notLogged || browserClose || qrReadSuccess || qrReadFail || autocloseCalled || desconnectedMobile || deleteToken || chatsAvailable || deviceNotConnected || serverWssNotConnected || noOpenBrowser
     //Create session wss return "serverClose" case server for close
@@ -27,25 +27,25 @@ function statusFind_controller(statusGet: string, session: string):void{
 
 function ack(ack: venom.Ack): void {
     console.log('==========ack==========');
-    if(!!WEBHOOK) axios.post(WEBHOOK+'/ack',{ ack });
+    if(!!WEBHOOK) axios.post(WEBHOOK.ack,ack);
     console.log(ack);
 }
 
 function addedToGroup(chat: venom.Chat): void {
     console.log('==========addedToGroup==========');
-    if(!!WEBHOOK) axios.post(WEBHOOK+'/acadded-to-group',{ chat });
+    if(!!WEBHOOK) axios.post(WEBHOOK.messages,chat);
     console.log(chat);
 }
 
 function anyMessage(message: venom.Message): void {
     console.log('==========anyMessage==========');
-    if(!!WEBHOOK) axios.post(WEBHOOK+'/any-message',{ message });
+    // if(!!WEBHOOK) axios.post(WEBHOOK,message);
     console.log(message);
 }
 
 function incomingCall(call: any): void {
     console.log('==========incomingCall==========');
-    if(!!WEBHOOK) axios.post(WEBHOOK+'/incoming-call',{ call });
+    if(!!WEBHOOK) axios.post(WEBHOOK.messages,call);
     console.log(call);
 }
 
@@ -55,28 +55,28 @@ function interfaceChange(state: {
                                 }): void {
 
     console.log('==========interfaceChange==========');
-    if(!!WEBHOOK) axios.post(WEBHOOK+'/interface-change',{ state });
+    if(!!WEBHOOK) axios.post(WEBHOOK.states,state);
     console.log('displayInfo');
     console.log(state.displayInfo);
     console.log('mode');
     console.log(state.mode);
 }
 
-function message(message: venom.Message): void {
+function message(message: venom.Message|venom.PartialMessage): void {
     console.log('==========message==========');
-    if(!!WEBHOOK) axios.post(WEBHOOK+'/message',{ message });
+    if(!!WEBHOOK) axios.post(WEBHOOK.messages,message);
     console.log(message);
 }
 
 function stateChange(state: venom.SocketState): void {
     console.log('==========stateChange==========');
-    if(!!WEBHOOK) axios.post(WEBHOOK+'/state-change',{ state });
+    if(!!WEBHOOK) axios.post(WEBHOOK.states,state);
     console.log(state);
 }
 
 function streamChange(state: SocketStream): void {
     console.log('==========streamChange==========');
-    if(!!WEBHOOK) axios.post(WEBHOOK+'/stream-change',{ state });
+    if(!!WEBHOOK) axios.post(WEBHOOK.states,state);
     console.log(state);
 }
 

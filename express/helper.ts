@@ -2,7 +2,8 @@ import ogs from 'open-graph-scraper';
 import config from '../config/default.json';
 import { Request, Response, NextFunction } from 'express';
 import { CustomSanitizer, Meta, validationResult } from 'express-validator';
-import { Whatsapp } from 'venom-bot';
+import { Whatsapp, Message, PartialMessage } from 'venom-bot';
+import { message } from '../venom/contoller';
 
 
 
@@ -62,6 +63,12 @@ export function validationResultReturn(){
       }
       next()
   }
+}
+
+export async function resendMessages(messages:Array<Message|PartialMessage>):Promise<void>{
+  messages.map(async (mensagem) => {
+    message(mensagem)
+  })
 }
 
 export async function getLinkData(url:string):Promise<{ linkUrl: string;
