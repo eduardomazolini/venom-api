@@ -1,6 +1,6 @@
 import venom from 'venom-bot'
 import { Router } from 'express'
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 import { considerAlias, phoneSanitizer, validationResultReturn } from './helper';
 import fileUpload from 'express-fileupload';
 
@@ -14,6 +14,7 @@ import {
         restoreSession,
         //Mensagens
         sendText,
+        sendTextOptions,
         sendContact,
         sendImage,
         sendAudio,
@@ -74,6 +75,13 @@ function routeBuilder(venom:venom.Whatsapp): Router {
         body('content').customSanitizer(considerAlias('message')).notEmpty(),
         validationResultReturn(),
         sendText(venom)
+    ]);
+    venomRoutes.post('/send-text-options', [
+        body('to').customSanitizer(phoneSanitizer('phone')).notEmpty(),
+        body('content').customSanitizer(considerAlias('message')).notEmpty(),
+        body('options'),
+        validationResultReturn(),
+        sendTextOptions(venom)
     ]);
     venomRoutes.post('/send-contact',[
         body('to').customSanitizer(phoneSanitizer('phone')).notEmpty(),
@@ -159,7 +167,10 @@ function routeBuilder(venom:venom.Whatsapp): Router {
 
     //Chats
     venomRoutes.get('/chats',chats(venom));
-    venomRoutes.get('​/chats/:phone',chatsPhone(venom));
+    venomRoutes.get('/chats/:phone',[
+        param('phone').customSanitizer(phoneSanitizer()).notEmpty(),
+        chatsPhone(venom)
+    ]);
     venomRoutes.get('​/chat-messages/:phone',chatMessages(venom));
 
     //Contatos

@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { base64MimeType } from './helper';
 import path from 'path';
 import axios from 'axios';
-
+import { matchedData} from 'express-validator';
 //Instância
 
 function qrCode(venom:venom.Whatsapp){
@@ -66,6 +66,34 @@ function sendText(venom:venom.Whatsapp){
         }
     }
 }
+
+function sendTextOptions(venom:venom.Whatsapp){
+    return async (req:Request, res:Response) => {
+        try{
+            const to = req.body.to;
+            const content = req.body.content;
+            const quotedMsg = req.body.quotedMsg;
+            
+            let venomReturn
+            if (!!quotedMsg){                
+                venomReturn = await venom.reply(to, content, quotedMsg);
+            } else {
+                venomReturn = await venom.sendMessageOptions(to, content, {  textColor: 4294967295,
+                    backgroundColor: 4286237605,
+                    font: 2});
+            }
+            res.status(200).send(venomReturn);
+        } catch(error){
+            res.status(500).send({"error":error.message});
+        }
+    }
+}
+
+/*
+  textColor: 4294967295,
+  backgroundColor: 4286237605,
+  font: 2,
+*/
 
 function sendContact(venom:venom.Whatsapp){
     return async (req:Request, res:Response) => {
@@ -410,7 +438,8 @@ function chats(venom:venom.Whatsapp){
 function chatsPhone(venom:venom.Whatsapp){
     return async (req:Request, res:Response) => {
         try{
-            const contactId = req.body.contactId
+            console.log("chatsPhone")
+            const { 'phone': contactId } = matchedData(req)
             const venomReturn = await venom.getChatById(contactId);
             res.status(200).send(venomReturn);
         } catch(error) {
@@ -511,6 +540,7 @@ export {
     restoreSession,
     //Mensagens
     sendText,
+    sendTextOptions,
     sendContact,
     sendImage,
     sendAudio,
